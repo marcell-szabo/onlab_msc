@@ -2,26 +2,25 @@ package producer
 
 import json.KafkaJsonDeserializer
 import json.KafkaJsonSerializer
+import json.OtherJson
+import json.SomeJson
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.serialization.IntegerSerializer
-import org.apache.kafka.common.serialization.Serdes
-import org.apache.kafka.streams.StreamsConfig
+import org.apache.kafka.common.serialization.StringSerializer
+
 
 import java.util.Properties
 
-data class SomeJson (val component: String, val some_value: Int)
-data class OtherJson(val component: String, val other_value: Double)
-
 class JSONProducer<V>(val props: Properties, private val appID: String, private val server: String, private val topic: String) {
-    lateinit var producer: KafkaProducer<Int, V>
+    lateinit var producer: KafkaProducer<String, V>
 
     init {
         this.props[ProducerConfig.CLIENT_ID_CONFIG] = appID
         this.props[ProducerConfig.BOOTSTRAP_SERVERS_CONFIG] = server
-        this.props[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = IntegerSerializer::class.java
+        this.props[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
     }
 
     inline fun<reified T> create_serdes() {
@@ -37,10 +36,9 @@ class JSONProducer<V>(val props: Properties, private val appID: String, private 
         this.producer = KafkaProducer(this.props)
     }
 
-    fun run(messages : List<V>) {
-        var messageno = 1
+    fun run(messages : Map<String, V>) {
         this.producer.use { producer ->  messages.forEach { it ->
-           producer.send(ProducerRecord(this.topic, messageno, it)) { _: RecordMetadata, e: Exception? ->
+           producer.send(ProducerRecord(this.topic, it.key, it.value)) { _: RecordMetadata, e: Exception? ->
                when(e) {
                    null -> println("produced record to topic ${this.topic}")
                    else -> e.printStackTrace()
@@ -55,10 +53,10 @@ class JSONProducer<V>(val props: Properties, private val appID: String, private 
 fun main(args: Array<String>) {
     val producer1 = JSONProducer<SomeJson>(Properties(), "onlab_producer1", args[0], args[1])
     producer1.create_serdes<SomeJson>()
-    producer1.run(listOf(SomeJson("nyavogo", 10), SomeJson("purrogo", 11)))
+    producer1.run(mapOf("macska" to SomeJson("nyavogo", 10), "kutya" to SomeJson("ugato", 11)))
     val producer2 = JSONProducer<OtherJson>(Properties(), "onlab_producer2", args[0], args[2])
     producer2.create_serdes<OtherJson>()
-    producer2.run(listOf(OtherJson("nyavogo", 10.0), OtherJson("purrogo", 11.0)))
+    producer2.run(mapOf("macska" to OtherJson("nyavogo", 10.0), "kutya" to OtherJson("purrogo", 11.0)))
 
 
 }

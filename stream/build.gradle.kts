@@ -6,6 +6,10 @@ dependencies {
     testImplementation("org.slf4j:slf4j-log4j12:1.7.36")
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
     implementation("org.slf4j:slf4j-api:1.7.36")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.2")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.13.2")
+    implementation("com.fasterxml.jackson.core:jackson-core:2.13.2")
+    implementation(project(":shared"))
 }
 
 tasks.test {
