@@ -1,0 +1,1 @@
+/home/szabo/Dokumentumok/egyetem/onlabMSC_1/stream/src/main/kotlin/main/main.kt
