@@ -17,6 +17,8 @@ import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.kstream.Consumed
 import org.apache.kafka.streams.kstream.JoinWindows
+import org.apache.kafka.streams.kstream.Printed
+import org.apache.kafka.streams.kstream.Produced
 import org.apache.kafka.streams.kstream.ValueJoiner
 import java.time.Duration
 
@@ -38,32 +40,38 @@ fun main(args: Array<String>) {
     val props = Properties()
     props[StreamsConfig.APPLICATION_ID_CONFIG] = "streams_onlab"
     props[StreamsConfig.BOOTSTRAP_SERVERS_CONFIG] = args[0]
-    //props[StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG] = Serdes.String().javaClass
-
+    props[StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG] = Serdes.String().javaClass
+    props[StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG] = Serdes.String().javaClass
 
     val serdeProps = HashMap<String, Any>()
     val someJsonSerde = create_serdes<SomeJson>(serdeProps)
     val otherJsonSerde = create_serdes<OtherJson>(serdeProps)
+    val resultJsonSerde = create_serdes<ResultJson>(serdeProps)
 
     val builder = StreamsBuilder()
-    val someJsonData = builder.stream<String, SomeJson>(args[1], Consumed.with(Serdes.String(), someJsonSerde))
+    //builder.stream<String, String>(args[1]).print(Printed.toSysOut())
+    val someJsonData = builder.stream(args[1], Consumed.with(Serdes.String(), someJsonSerde)).print(Printed.toSysOut())
+    /*someJsonData.to(args[3], Produced.with(Serdes.String(), someJsonSerde))
     val otherJsonData = builder.stream<String, OtherJson>(args[2], Consumed.with(Serdes.String(), otherJsonSerde))
-    val resultJsonData = someJsonData.join(otherJsonData,
+    someJsonData.join(otherJsonData,
         { sj, oj -> println("runned join"); ResultJson(sj.component, sj.some_value, oj.other_value) },
-        JoinWindows.ofTimeDifferenceWithNoGrace(Duration.ofSeconds(10)))
-
-    resultJsonData.to(args[3])
-    val stream = KafkaStreams(builder.build(), props)
+        JoinWindows.ofTimeDifferenceWithNoGrace(Duration.ofSeconds(30))).to(args[3], Produced.with(Serdes.String(), resultJsonSerde))
+*/
+    val topology = builder.build()
+    println(topology.describe())
+    val stream = KafkaStreams(topology, props)
 
     val latch = CountDownLatch(1)
     Runtime.getRuntime().addShutdownHook(Thread(){
         fun run() {
             stream.close()
+            println("stream closed")
             latch.countDown()
         }
     })
     try {
         stream.start()
+        println("stream started")
         latch.await()
     } catch (e: Throwable) {
         exitProcess(1)

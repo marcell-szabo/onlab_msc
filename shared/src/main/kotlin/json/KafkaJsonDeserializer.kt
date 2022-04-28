@@ -13,6 +13,7 @@ class KafkaJsonDeserializer<T> : Deserializer<T> {
 
     override fun configure(configs: MutableMap<String, *>?, isKey: Boolean) {
         this.tClass = configs?.get("JSONClass") as Class<T>
+        print(tClass)
     }
 
     override fun deserialize(topic: String?, data: ByteArray?): T? {

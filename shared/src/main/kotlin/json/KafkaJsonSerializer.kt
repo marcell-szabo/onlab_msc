@@ -20,7 +20,6 @@ class KafkaJsonSerializer<T>() : Serializer<T> {
     }
 
     override fun close() {
-        super.close()
     }
 
 }
