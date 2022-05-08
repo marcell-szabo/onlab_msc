@@ -8,6 +8,7 @@ dependencies {
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
     implementation("org.slf4j:slf4j-api:1.7.36")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.2")
+
 }
 
 tasks.test {

@@ -1,1 +1,0 @@
-/home/szabo/Dokumentumok/egyetem/onlabMSC_1/shared/build/classes/kotlin/main/json/KafkaJsonDeserializer.class:/home/szabo/Dokumentumok/egyetem/onlabMSC_1/shared/build/classes/kotlin/main/json/KafkaJsonSerializer.class

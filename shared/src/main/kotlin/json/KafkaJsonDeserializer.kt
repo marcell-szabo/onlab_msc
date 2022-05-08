@@ -1,27 +1,30 @@
 package json
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.*
+
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.apache.kafka.common.errors.SerializationException
 import org.apache.kafka.common.serialization.Deserializer
-import kotlin.reflect.KClass
-import kotlin.reflect.KType
 
 class KafkaJsonDeserializer<T> : Deserializer<T> {
-    val objectmapper = ObjectMapper()
     lateinit var tClass: Class<T>
 
+
+
+    @Suppress("UNCHECKED_CAST")
     override fun configure(configs: MutableMap<String, *>?, isKey: Boolean) {
         this.tClass = configs?.get("JSONClass") as Class<T>
         print(tClass)
     }
 
     override fun deserialize(topic: String?, data: ByteArray?): T? {
-        if (data == null)
+        if (data == null) {
+            print("deserializing null data: ${data}")
             return null
+        }
         val result: T
         try {
-            result = objectmapper.readValue(data, this.tClass)
+            print("deserializing")
+            result = jacksonObjectMapper().readValue(data, tClass)
         } catch (e : Exception) {
             throw SerializationException(e)
         }
